@@ -1,0 +1,13 @@
+[
+    {
+      "keyword": "warranty",
+      "question": "What is the product warranty?",
+      "answer": "Our products come with a 1-year warranty covering manufacturing defects."
+    },
+    {
+      "keyword": "return",
+      "question": "What is the return policy?",
+      "answer": "You can return the product within 30 days of delivery for a full refund."
+    }
+  ]
+  

@@ -1,0 +1,9 @@
+[
+  {
+    "email": "Hi Travel Insurance Team,\r\n\r\n\r\n\r\nMy name is Ms. Lee and I would like to submit a claim for my recent trip.\r\n\r\n\r\n\r\n- Name: Ms. Lee\r\n\r\n- Age: 81\r\n\r\n- Destination: Malaysia\r\n\r\n- Product: Comprehensive Plan\r\n\r\n- Duration: 186 days\r\n\r\n\r\n\r\nI believe my claim falls under the conditions mentioned in my policy.\r\nPlease advise on the next steps or documents required.\r\n\r\n\r\n\r\nThank you,\r\n\r\nMs. Lee",
+    "category": "Claim Inquiry",
+    "response_final": "Subject: Your Travel Insurance Claim Invoice\n\nDear [Customer Name],\n\nThank you for providing the necessary information.  Your travel insurance claim invoice is attached.\n\nSincerely,\n\nThe Travel Insurance Support Team",
+    "invoice_attached": true,
+    "recipient": "Mr Cooper <1990mr.cooper@gmail.com>"
+  }
+]
