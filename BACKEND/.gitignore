@@ -1,4 +1,1 @@
 /node_modules
-# Google OAuth secrets
-BACKEND/credentials.json
-BACKEND/token.json
