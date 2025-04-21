@@ -1,33 +1,35 @@
-
-
 import model from "../utils/geminiClient.js";
 import { loadInsuranceData } from "../utils/dataLoader.js";
 import { generateInvoicePDF } from "../utils/invoiceGenerator.js";
 
 export async function draftResponse(emailText, category) {
   try {
-    // If it's a claim-related email, process with invoice logic
     if (category.toLowerCase().includes('claim')) {
       const requiredFields = ['name', 'age', 'destination', 'product', 'duration'];
       const missingFields = [];
 
-      // Smarter field matchers
       const fieldMatchers = {
-        name: /name\s*[:\-]?\s*[a-z]+/i,
-        age: /age\s*[:\-]?\s*\d+/i,
-        destination: /destination\s*[:\-]?\s*\w+/i,
-        product: /product\s*[:\-]?\s*[\w\s]+/i,
-        duration: /duration\s*[:\-]?\s*\d+/i
+        name: /name\s*[:\-]?\s*([a-zA-Z. ]+)/i,
+        age: /age\s*[:\-]?\s*(\d+)/i,
+        destination: /destination\s*[:\-]?\s*([a-zA-Z ]+)/i,
+        product: /product\s*[:\-]?\s*([\w\s]+)/i,
+        duration: /duration\s*[:\-]?\s*(\d+)/i
       };
 
+      const extractedData = {};
       for (const field of requiredFields) {
         const regex = fieldMatchers[field];
-        if (!regex.test(emailText)) {
+        const match = emailText.match(regex);
+        if (match) {
+          extractedData[field] = match[1].trim();
+        } else {
           missingFields.push(field);
         }
       }
-      const insuranceData = await loadInsuranceData(); // This now loads from the JSON file if available
-      console.log("Insurance data loaded:", insuranceData);
+
+      const insuranceData = await loadInsuranceData();
+      // console.log("Insurance data loaded:", insuranceData);
+      
 
       if (missingFields.length > 0) {
         return {
@@ -36,23 +38,38 @@ export async function draftResponse(emailText, category) {
           attachment: null
         };
       }
+      const matchingEntry = insuranceData.find(entry =>
+        entry['Age'] == extractedData.age &&
+        entry['Destination'].toLowerCase() === extractedData.destination.toLowerCase() &&
+        entry['Product Name'].toLowerCase() === extractedData.product.toLowerCase() &&
+        entry['Duration'] == extractedData.duration
+      );
 
-      // All required data present — generate invoice
+      if (matchingEntry) {
+        extractedData.gender = matchingEntry['Gender'];
+        extractedData.agency = matchingEntry['Agency'];
+        extractedData.agencyType = matchingEntry['Agency Type'];
+        extractedData.channel = matchingEntry['Distribution Channel'];
+        extractedData.netSales = matchingEntry['Net Sales'];
+        extractedData.commission = matchingEntry['Commision (in value)'];
+      } else {
+        console.warn("⚠️ No exact dataset match found for extracted fields.");
+      }
+
       console.log("Generating invoice for claim email...");
-    //   const insuranceData = await loadInsuranceData(); // This now loads from the JSON file if available
-      const invoiceBuffer = await generateInvoicePDF(emailText, insuranceData);
-      console.log("Generated invoice buffer:", invoiceBuffer);
+      const invoiceBuffer = await generateInvoicePDF(emailText, insuranceData, extractedData);
+      // console.log("Generated invoice buffer:", invoiceBuffer);
 
+      const customerName = extractedData.name || 'Customer';
       return {
         subject: 'Your Travel Insurance Claim Invoice',
-        body: `Hello,\n\nThank you for providing the required details. Please find attached your travel insurance claim invoice.\n\nBest regards,\nTravel Insurance Support Team`,
+        body: `Dear ${customerName},\n\nThank you for providing the necessary details. Your travel insurance claim invoice is attached.\n\nSincerely,\n\nThe Travel Insurance Support Team`,
         attachment: invoiceBuffer
       };
     }
-    
-    const insuranceData = await loadInsuranceData(); // This now loads from the JSON file if available
-      console.log("Insurance data loaded:", insuranceData);
-    // Default polite Gemini-generated response for non-claim emails
+
+    const insuranceData = await loadInsuranceData();
+   // console.log("Insurance data loaded:", insuranceData);
     const prompt = `
 You are an AI email assistant. Based on the category "${category}", write a professional and polite response to this email:
 

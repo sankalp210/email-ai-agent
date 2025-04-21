@@ -1,59 +1,59 @@
 
 
-// import PDFDocument from 'pdfkit';
-// import getStream from 'get-stream';
-
-// export async function generateInvoicePDF(emailText, dataset) {
-//   const doc = new PDFDocument();
-
-//   doc.fontSize(20).text('Travel Insurance Claim Invoice', { align: 'center' });
-//   doc.moveDown();
-
-//   // Fill with dummy or extracted data
-//   doc.fontSize(12).text(`Customer: Extracted from email`);
-//   doc.text(`Product: Travel Protect Gold`);
-//   doc.text(`Amount: SGD 120.00`);
-//   doc.text(`Commission: SGD 12.00`);
-//   doc.text(`Status: Approved`);
-//   doc.end();
-
-//   return await getStream(doc); // returns a Buffer
-// }
-
-
 import PDFDocument from 'pdfkit';
-import getStream from 'get-stream';  // Ensure get-stream is correctly installed
+import getStream from 'get-stream';
 
-export async function generateInvoicePDF(emailText, dataset) {
-  const doc = new PDFDocument();
+export async function generateInvoicePDF(emailText, dataset, extractedData = {}) {
+  const doc = new PDFDocument({ size: 'A4', margin: 50 });
   const buffers = [];
+  console.log(extractedData);
+  
 
-  // Capture data as it's written
   doc.on('data', buffers.push.bind(buffers));
   doc.on('end', () => {});
 
-  // Fill with dummy or extracted data
-  doc.fontSize(20).text('Travel Insurance Claim Invoice', { align: 'center' });
-  doc.moveDown();
+  doc.fontSize(24).font('Helvetica-Bold').text('Travel Insurance Claim Invoice', { align: 'center' });
+  doc.moveDown(1);
 
-  // Assuming 'emailText' contains extracted data or dummy data
-  doc.fontSize(12).text(`Customer: Extracted from email`);
-  doc.text(`Product: Travel Protect Gold`);
-  doc.text(`Amount: SGD 120.00`);
-  doc.text(`Commission: SGD 12.00`);
-  doc.text(`Status: Approved`);
+  doc.fontSize(14).font('Helvetica').text(`Date: ${new Date().toLocaleDateString()}`, { align: 'right' });
+  doc.moveDown(0.5);
 
-  // Finalize the PDF
+  doc.fontSize(16).font('Helvetica-Bold').text('Claim Overview', { underline: true });
+  doc.moveDown(0.5);
+
+  doc.fontSize(12).font('Helvetica').text(`Customer Name: ${extractedData.name || 'N/A'}`);
+  doc.text(`Age: ${extractedData.age || 'N/A'}`);
+  doc.text(`Gender: ${extractedData.gender || 'N/A'}`);
+  doc.text(`Destination: ${extractedData.destination || 'N/A'}`);
+  doc.text(`Duration: ${extractedData.duration || 'N/A'} days`);
+  doc.text(`Product: ${extractedData.product || 'N/A'}`);
+  doc.moveDown(1);
+
+  doc.fontSize(14).font('Helvetica-Bold').text('Policy & Sales Info', { underline: true });
+  doc.moveDown(0.5);
+
+  doc.fontSize(12).font('Helvetica').text(`Agency: ${extractedData.agency || 'N/A'}`);
+  doc.text(`Agency Type: ${extractedData.agencyType || 'N/A'}`);
+  doc.text(`Distribution Channel: ${extractedData.channel || 'N/A'}`);
+  doc.text(`Net Sales: SGD ${extractedData.netSales || '0.00'}`);
+  doc.text(`Commission: SGD ${extractedData.commission || '0.00'}`);
+  doc.moveDown(1);
+
+  doc.fontSize(14).font('Helvetica-Bold').text('Claim Status', { underline: true });
+  doc.moveDown(0.5);
+  doc.fontSize(12).font('Helvetica').text(`Status: Approved`);
+  // doc.text(`Invoice Amount: SGD 120.00`);
+
+  doc.moveDown(2);
+  doc.fontSize(10).font('Helvetica-Oblique').text('Thank you for choosing Travel Protect Gold!', { align: 'center' });
+
   doc.end();
 
-  // Wait for the stream to be fully captured
   return new Promise((resolve, reject) => {
     doc.on('end', () => {
-      const pdfBuffer = Buffer.concat(buffers);  // Combine chunks into one Buffer
-      resolve(pdfBuffer);  // Return the complete PDF buffer
+      const pdfBuffer = Buffer.concat(buffers);
+      resolve(pdfBuffer);
     });
-    
-    // If there's an error, reject the promise
     doc.on('error', reject);
   });
 }
